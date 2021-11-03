@@ -1,5 +1,3 @@
-
-   
 <!doctype html>
 <html>
 <head>
@@ -16,13 +14,11 @@
 <svg width="1000" height="1000"></svg>
 <div>
     <nav>
-      <a href="index.html">IT SECTOR</a>
-      <a href="index1.html">PHARMACEUTICAL</a>
-      <a href="index2.html">MOTOR SECTOR</a>
-      <a href="index3.html">LINE GRAPH</a>
-      <!-- <a href="index2.html">1990 to 2000</a>
-      <a href="index3.html">2000 to 2010</a>
-      <a href="visualization.html">County wise</a> -->
+      <a href="index.html">MEDIAN_HOUSE_VALUE</a>
+      <a href="index1.html">MEDIAN_INCOME</a>
+      <a href="index2.html">HOUSEHOLDS</a>
+      <a href="index3.html">TOTAL_BEDROOMS</a>
+     
     </nav>
   </div>
 <script>
@@ -38,7 +34,7 @@ let yScale = d3.scaleLinear().range([height, 0]);
 var g = svg.append("g")
             .attr("transform", "translate(" + 100+ "," + 100 + ")");
 
-    const loadData = d3.csv("IT_csv.csv",
+    const loadData = d3.csv("housing.csv",
         function(d) {
         return {
       //  date: d3.timeParse("%Y-%m")(d.Date),
