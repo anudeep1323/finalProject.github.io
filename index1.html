@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>California Counties: Mercator projection</title>
+
+		<script type="text/javascript" src="//d3js.org/d3.v3.min.js"></script>
+
+ 		<script type="text/javascript" src="https://use.typekit.com/brf5jpj.js"></script>
+		<script src="//use.typekit.net/drk2sev.js"></script>
+		<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+		<style type="text/css">
+
+			body {
+				margin: 0;
+				background-color: #48494B;
+				font-family: "proxima-nova", "Source Sans Pro", sans-serif;
+			}
+
+			#container {
+				width: 800px;
+				margin-left: 30px;
+				margin-right: auto;
+				margin-top: 30px;
+				padding: 30px;
+				background-color: white;
+				box-shadow: 3px 3px 7px #222;
+			}
+
+			h1 {
+				font-size: 24px;
+				margin: 0;
+			}
+
+			p {
+				font-size: 16px;
+				margin: 15px 0 10px 0;
+			}
+
+			a {
+			  color: #799DCB;
+			  text-decoration: none;
+			  transition: color .3s, background .3s, border .3s;
+			}
+			a:hover {
+			  color: #48494b;
+			  background: #e7e8e9;
+			}
+
+			svg {
+				background-color: white;
+				padding-left: 20px;
+			}
+
+			path {
+				fill: #799dcb;
+				stroke: #fff;
+				}
+			path:hover {
+				fill:#48494b;
+				cursor:pointer;
+			}
+
+			#tooltip {
+				width: 150px;
+				height: auto;
+				padding: 5px;
+				background-color: #fff;
+				color: #000;
+				-webkit-border-radius: 5px;
+				-moz-border-radius: 5px;
+				border-radius: 5px;
+				-webkit-box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4);
+				-moz-box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4);
+				box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4);
+				pointer-events: none;
+				position: absolute;
+				}
+
+			#tooltip.hidden {
+				display: none;
+			}
+
+			#tooltip p {
+			margin: 0;
+			font-size: 14px;
+			line-height: 18px;
+			}
+
+		</style>
+	</head>
+
+
+    	<body>
+
+		<div id="container">
+
+			<h1>Counties of California</h1>
+			<p>Source: <a href="https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html" target="new">U.S. Census Bureau</a></p>
+		</div>
+
+		<div id="tooltip" class="hidden">
+            <p>County: <span id="county">County Name</span></p>
+        </div>
+		<script type="text/javascript">
+
+
+
+			//Width and height
+			var w = 760;
+			var h = 600;
+
+			//Define map projection
+			var projection = d3.geo.mercator()
+								   .center([ -120, 37 ])
+								   .translate([ w/2, h/2 ])
+								   .scale([ w*3.3 ]);
+
+			//Define path generator
+			var path = d3.geo.path()
+							 .projection(projection);
+
+			//Create SVG
+			var svg = d3.select("#container")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			//Load in GeoJSON data
+			d3.json("uscounty.json", function(json) {
+				console.log(json);
+				d3.csv("housing.csv",function(csv){
+				//Bind data and create one path per GeoJSON feature
+				svg.selectAll("path")
+					.data(json.features)
+					.enter()
+					.append("path")
+					.attr("d", path)
+				   	.on("mouseover", function(d){
+						var xPosition = w/2 + 150;
+						var yPosition = h/2;
+// 						var xPosition = parseFloat(path.centroid(this).attr("cx"));
+// 						var yPosition = parseFloat(path.centroid(this).attr("cy"));
+						d3.select("#tooltip")
+						.style("left", xPosition + "px")
+						.style("top", yPosition + "px");
+						d3.select("#county")
+						.text(d.properties.NAME);
+						d3.select("#tooltip")
+						.classed("hidden", false);
+						})
+						.on("mouseout", function(){
+						d3.select("#tooltip").classed("hidden", true);
+						});
+
+			});
+
+
+
+});
+
+d3.csv("housing.csv", (data) => {
+
+            // Create a color scale
+            let color = d3.scale.category20();
+
+            // Add a scale for bubble size
+            let valueExtent = d3.extent(data, (d) => { return +d.n; })
+            let size = d3.scaleSqrt()
+                .domain(valueExtent)  // What's in the data
+                .range([1, 20])  // Size of circle in pixel
+
+            let tooltip = d3.select("body")
+                .append("div")
+                .style("position", "absolute")
+                .style("text-align", "center")
+                .style("padding", "15px")
+                .style("font", "12px sans-serif")
+                .style("background", "#03bafc")
+                .style("border", "0px")
+                .style("border-radius", "8px")
+                .style("z-index", "10")
+                .style("visibility", "hidden")
+                .text("a simple tooltip");
+            svg
+                .selectAll("myCircles")
+                .data(data.sort((a, b) => { return +b.n - +a.n }).filter((d, i) => { return i < 1000 }))
+                .enter()
+                .append("circle")
+                .attr("cx", (d) => { return projection([+d.longitude, +d.latitude])[0] })
+                .attr("cy", (d) => { return projection([+d.longitude, +d.latitude])[1] })
+                .attr("r", (d) => { return size(+d.n + 1) + 2 })
+
+                .attr("stroke-width", 1)
+                .attr("fill-opacity", 0.6)
+                .on("mouseover", () => {
+                    return tooltip.style("visibility", "visible");
+                })
+                .on("mousemove", (d) => {
+                    tooltip.text(d.Population);
+                    return tooltip.style("top",
+                        (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
+                })
+
+        });
+
+
+		</script>
+	</body>
+</html>
