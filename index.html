@@ -1,0 +1,87 @@
+
+<head>
+	<!-- Load plotly.js into the DOM -->
+	<script src='https://cdn.plot.ly/plotly-2.6.3.min.js'></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js'></script>
+</head>
+
+<body>
+	<div id='myDiv'><!-- Plotly chart will be drawn inside this DIV --></div>
+</body>
+
+<script>
+d3.csv('https://raw.githubusercontent.com/anudeep1323/finalProject.github.io/main/csv/housing.csv', function(err, rows){
+
+    function unpack(rows, key) {
+        return rows.map(function(row) { return row[key]; });
+    }
+
+    var name = unpack(rows, 'ocean_proximity'),
+        val = unpack(rows, 'median_house_value'),
+        lat = unpack(rows, 'latitude'),
+        long = unpack(rows, 'longitude'),
+        color = [,"red","green","blue","lightgrey"],
+        value1 = [],
+        hoverText = [];
+        
+
+    for ( var i = 0 ; i < val.length; i=i+1) {
+        var currentSize = val[i]/20000;
+        var currentText = name[i] + " House Value: " + val[i];
+        value1.push(currentSize);
+        hoverText.push(currentText);
+    }
+
+    var data = [{
+        type: 'scattergeo',
+        locationmode: 'California',
+        lat: lat,
+        lon: long,
+        hoverinfo: 'text',
+        text: hoverText,
+        marker: {
+            size: value1,
+            line: {
+                color: 'black',
+                width: 2
+            },
+			colorscale: 'Greens',
+            cmin: 0,
+            color: val,
+            colorbar: {
+                title: 'Housing Value'
+            },
+			
+        }
+    }];
+
+    var layout = {
+        title: 'California Housing Value',
+		width: 1000,
+        height: 1000,
+        showlegend: false,
+        geo: {
+            scope: 'california',
+			resolution: 50,
+                lonaxis: {
+                'range': [-130.35, -110.31]
+            },
+            lataxis: {
+                'range': [30.54, 45.95]
+            },
+            showrivers: true,
+			rivercolor: '#fff',
+			showlakes: true,
+			lakecolor: '#fff',
+			showland: true,
+			landcolor: '#EAEAAE',
+			countrycolor: '#d3d3d3',
+			countrywidth: 1.5,
+			subunitcolor: '#d3d3d3'
+        },
+    };
+
+    Plotly.newPlot("myDiv", data, layout, {showLink: false});
+
+});
+</script>
